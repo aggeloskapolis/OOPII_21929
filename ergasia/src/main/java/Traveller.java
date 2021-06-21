@@ -180,91 +180,77 @@ public abstract class Traveller {
     }
 
 
-    public void mainprc() throws IOException, SQLException {
+    public String mainprc(String name,int[] age, String[] cityto, String[] countryto, String CitY, String CountrY, Vector<Integer> travellersTermsVector) throws IOException, SQLException {
 
         City city = new City();
+        city.startThreads();
         ArrayList<Traveller> travellers = new ArrayList<Traveller>();
         AllCities allCities = new AllCities();
-
+        Date date=new Date();
         //Read travellers from JSON file
         travellers = readJSON();
         //Initiate cities Database
         Database db = new Database();
         db.makeJDBCConnection();
+        HashMap<String, City> Cities = new HashMap<String, City>();
+        String result=null;
 
-        Vector<Integer> v3 = new Vector();
-        Vector<Double> v4 = new Vector();
-        v3.add(0);
-        v3.add(9);
-        v3.add(8);
-        v3.add(7);
-        v3.add(6);
-        v3.add(5);
-        v3.add(4);
-        v3.add(3);
-        v3.add(2);
-        v3.add(1);
+        if (age[0] == 0){
 
-        v4.add(7.345);
-        v4.add(13.888);
+            YoungTraveller young = new YoungTraveller();
+            young.setTravellersGeodesicVector(city.retieveOpenData(CitY,CountrY).geodesic_vector);
+            young.setTravellersTermsVector(travellersTermsVector);
+            young.setTimestamp(date.getTime());
+            young.setName(name);
+            Cities.put(cityto[0],city.retieveOpenData(cityto[0],countryto[0]));
+            Cities.put(cityto[1],city.retieveOpenData(cityto[1],countryto[1]));
 
-        City city1 = new City();
-        city1.setTerms_vector(v3);
-        city1.setGeodesic_vector(v4);
-        Vector<Integer> v1 = new Vector();
-        Vector<Double> v2 = new Vector();
-        v1.add(1);
-        v1.add(2);
-        v1.add(3);
-        v1.add(4);
-        v1.add(5);
-        v1.add(6);
-        v1.add(7);
-        v1.add(8);
-        v1.add(9);
-        v1.add(0);
-        v2.add(13.888);
-        v2.add(7.345);
 
-        //First time travellers data
-        //This code is used only for first running
-        //After that we read data from JSON file
-       /* ElderTraveller elder = new ElderTraveller();
-        elder.setTravellersGeodesicVector(v2);
-        elder.setTravellersTermsVector(v1);
-        elder.setTimestamp(date.getTime());
-        elder.setName("giorgos");
-        //Set the name of the recommended city
-        elder.setVisit(elder.compareCities(allCities.getCities()));
-        ElderTraveller elder2 = new ElderTraveller();
-        elder2.setTravellersGeodesicVector(v4);
-        elder2.setTravellersTermsVector(v3);
-        elder2.setTimestamp(date.getTime());
-        elder2.setName("giorgos");
-        elder2.setVisit(elder.compareCities(allCities.getCities()));
-        MiddleTraveller mdlie = new MiddleTraveller();
-        mdlie.setTravellersGeodesicVector(v4);
-        mdlie.setTravellersTermsVector(v3);
-        mdlie.setTimestamp(date.getTime());
-        mdlie.setName("panos");
-        mdlie.setVisit(elder.compareCities(allCities.getCities()));
-        YoungTraveller young = new YoungTraveller();
-        young.setTravellersGeodesicVector(v2);
-        young.setTravellersTermsVector(v1);
-        young.setTimestamp(date.getTime());
-        ;
-        young.setName("katos");
-        young.setVisit(elder.compareCities(allCities.getCities()));
-        //travellers.add(elder);
-        //travellers.add(elder2);
-        //travellers.add(young);
-        //travellers.add(mdlie);*/
+            result=compareCities(Cities);
+            young.setVisit(result);
+
+            travellers.add(young);
+
+        }else if (age[0]==1){
+
+            MiddleTraveller middle = new MiddleTraveller();
+            middle.setTravellersGeodesicVector(city.retieveOpenData(CitY,CountrY).geodesic_vector);
+            middle.setTravellersTermsVector(travellersTermsVector);
+            middle.setTimestamp(date.getTime());
+            middle.setName(name);
+            Cities.put(cityto[0],city.retieveOpenData(cityto[0],countryto[0]));
+            Cities.put(cityto[1],city.retieveOpenData(cityto[1],countryto[1]));
+
+
+
+            result=compareCities(Cities);
+            middle.setVisit(result);
+
+            travellers.add(middle);
+
+        }else {
+            ElderTraveller elder = new ElderTraveller();
+            elder.setTravellersGeodesicVector(city.retieveOpenData(CitY,CountrY).geodesic_vector);
+            elder.setTravellersTermsVector(travellersTermsVector);
+            elder.setTimestamp(date.getTime());
+            elder.setName(name);
+            Cities.put(cityto[0],city.retieveOpenData(cityto[0],countryto[0]));
+            Cities.put(cityto[1],city.retieveOpenData(cityto[1],countryto[1]));
+
+
+            result=compareCities(Cities);
+            elder.setVisit(result);
+
+            travellers.add(elder);
+
+        }
+
         //Find traveller who wins free ticket
         int freeTicketWinnerIndex = 0;
         double max = -0.0;
         double sim = 0.0;
         for (int i = 0; i < travellers.size(); i++) {
-            sim = travellers.get(i).calculateSimilarity(city1);
+           // sim = travellers.get(i).calculateSimilarity(city1);
 
             if ((sim) > max) {
                 max = sim;
@@ -295,6 +281,7 @@ public abstract class Traveller {
         db.writeCities(allCities);
         //Write travellers to JSON file
         writeJSON(travellers);
+        return result;
 
     }
 
